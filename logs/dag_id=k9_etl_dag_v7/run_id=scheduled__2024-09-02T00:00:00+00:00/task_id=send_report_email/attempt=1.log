@@ -39,3 +39,20 @@ ConnectionRefusedError: [Errno 111] Connection refused
 [2024-09-03T14:46:24.991+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 126 for task send_report_email ([Errno 111] Connection refused; 2913)
 [2024-09-03T14:46:25.014+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
 [2024-09-03T14:46:25.044+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2024-09-03T18:16:21.293+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v7.send_report_email scheduled__2024-09-02T00:00:00+00:00 [queued]>
+[2024-09-03T18:16:21.302+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v7.send_report_email scheduled__2024-09-02T00:00:00+00:00 [queued]>
+[2024-09-03T18:16:21.302+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 2
+[2024-09-03T18:16:21.312+0000] {taskinstance.py:1380} INFO - Executing <Task(EmailOperator): send_report_email> on 2024-09-02 00:00:00+00:00
+[2024-09-03T18:16:21.317+0000] {standard_task_runner.py:57} INFO - Started process 130 to run task
+[2024-09-03T18:16:21.323+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v7', 'send_report_email', 'scheduled__2024-09-02T00:00:00+00:00', '--job-id', '10', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v7.py', '--cfg-path', '/tmp/tmp4dd1j609']
+[2024-09-03T18:16:21.325+0000] {standard_task_runner.py:85} INFO - Job 10: Subtask send_report_email
+[2024-09-03T18:16:21.373+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v7.send_report_email scheduled__2024-09-02T00:00:00+00:00 [running]> on host dcdd6b24b7af
+[2024-09-03T18:16:21.433+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v7' AIRFLOW_CTX_TASK_ID='send_report_email' AIRFLOW_CTX_EXECUTION_DATE='2024-09-02T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-09-02T00:00:00+00:00'
+[2024-09-03T18:16:21.442+0000] {warnings.py:109} WARNING - /home/***/.local/lib/python3.8/site-packages/***/utils/email.py:154: RemovedInAirflow3Warning: Fetching SMTP credentials from configuration variables will be deprecated in a future release. Please set credentials using a connection instead.
+  send_mime_email(e_from=mail_from, e_to=recipients, mime_msg=msg, conn_id=conn_id, dryrun=dryrun)
+
+[2024-09-03T18:16:21.442+0000] {email.py:270} INFO - Email alerting: attempt 1
+[2024-09-03T18:16:23.499+0000] {email.py:282} INFO - Sent an alert email to ['dicmandilan@gmail.com']
+[2024-09-03T18:16:26.911+0000] {taskinstance.py:1398} INFO - Marking task as SUCCESS. dag_id=k9_etl_dag_v7, task_id=send_report_email, execution_date=20240902T000000, start_date=20240903T181621, end_date=20240903T181626
+[2024-09-03T18:16:27.171+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2024-09-03T18:16:27.551+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check
