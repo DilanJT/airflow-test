@@ -1,0 +1,30 @@
+[2024-09-03T13:29:23.967+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v5.execute_sql manual__2024-09-03T13:29:14.440650+00:00 [queued]>
+[2024-09-03T13:29:23.972+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v5.execute_sql manual__2024-09-03T13:29:14.440650+00:00 [queued]>
+[2024-09-03T13:29:23.973+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2024-09-03T13:29:23.979+0000] {taskinstance.py:1380} INFO - Executing <Task(_PythonDecoratedOperator): execute_sql> on 2024-09-03 13:29:14.440650+00:00
+[2024-09-03T13:29:23.983+0000] {standard_task_runner.py:57} INFO - Started process 1594 to run task
+[2024-09-03T13:29:23.990+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v5', 'execute_sql', 'manual__2024-09-03T13:29:14.440650+00:00', '--job-id', '40', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v5.py', '--cfg-path', '/tmp/tmpp9yej9r7']
+[2024-09-03T13:29:23.992+0000] {standard_task_runner.py:85} INFO - Job 40: Subtask execute_sql
+[2024-09-03T13:29:24.030+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v5.execute_sql manual__2024-09-03T13:29:14.440650+00:00 [running]> on host 2624bebdd8ee
+[2024-09-03T13:29:24.076+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v5' AIRFLOW_CTX_TASK_ID='execute_sql' AIRFLOW_CTX_EXECUTION_DATE='2024-09-03T13:29:14.440650+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-09-03T13:29:14.440650+00:00'
+[2024-09-03T13:29:24.108+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/decorators/base.py", line 221, in execute
+    return_value = super().execute(context)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/k9_etl_dag_v5.py", line 153, in execute_sql
+    cursor.execute(query)
+psycopg2.errors.UndefinedTable: relation "deleted_records" does not exist
+LINE 23: ...     WHERE id IN (SELECT id FROM k9_facts_v5 JOIN deleted_re...
+                                                              ^
+
+[2024-09-03T13:29:24.115+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=k9_etl_dag_v5, task_id=execute_sql, execution_date=20240903T132914, start_date=20240903T132923, end_date=20240903T132924
+[2024-09-03T13:29:24.121+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 40 for task execute_sql (relation "deleted_records" does not exist
+LINE 23: ...     WHERE id IN (SELECT id FROM k9_facts_v5 JOIN deleted_re...
+                                                              ^
+; 1594)
+[2024-09-03T13:29:24.135+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2024-09-03T13:29:24.151+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

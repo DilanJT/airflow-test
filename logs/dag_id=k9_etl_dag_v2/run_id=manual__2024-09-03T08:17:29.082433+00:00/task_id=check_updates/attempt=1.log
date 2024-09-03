@@ -1,0 +1,26 @@
+[2024-09-03T08:17:33.494+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v2.check_updates manual__2024-09-03T08:17:29.082433+00:00 [queued]>
+[2024-09-03T08:17:33.503+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v2.check_updates manual__2024-09-03T08:17:29.082433+00:00 [queued]>
+[2024-09-03T08:17:33.503+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2024-09-03T08:17:33.515+0000] {taskinstance.py:1380} INFO - Executing <Task(_PythonDecoratedOperator): check_updates> on 2024-09-03 08:17:29.082433+00:00
+[2024-09-03T08:17:33.525+0000] {standard_task_runner.py:57} INFO - Started process 256 to run task
+[2024-09-03T08:17:33.531+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v2', 'check_updates', 'manual__2024-09-03T08:17:29.082433+00:00', '--job-id', '11', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v2.py', '--cfg-path', '/tmp/tmp_58l_9st']
+[2024-09-03T08:17:33.535+0000] {standard_task_runner.py:85} INFO - Job 11: Subtask check_updates
+[2024-09-03T08:17:33.617+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v2.check_updates manual__2024-09-03T08:17:29.082433+00:00 [running]> on host 52afa4428dd5
+[2024-09-03T08:17:33.879+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v2' AIRFLOW_CTX_TASK_ID='check_updates' AIRFLOW_CTX_EXECUTION_DATE='2024-09-03T08:17:29.082433+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-09-03T08:17:29.082433+00:00'
+[2024-09-03T08:17:33.905+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/decorators/base.py", line 221, in execute
+    return_value = super().execute(context)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/k9_etl_dag_v2.py", line 124, in check_updates
+    new_facts = [item for item in transformed_data if item['fact_id'] > max_fact_id]
+  File "/opt/airflow/dags/k9_etl_dag_v2.py", line 124, in <listcomp>
+    new_facts = [item for item in transformed_data if item['fact_id'] > max_fact_id]
+TypeError: '>' not supported between instances of 'NoneType' and 'int'
+[2024-09-03T08:17:33.911+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=k9_etl_dag_v2, task_id=check_updates, execution_date=20240903T081729, start_date=20240903T081733, end_date=20240903T081733
+[2024-09-03T08:17:33.920+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 11 for task check_updates ('>' not supported between instances of 'NoneType' and 'int'; 256)
+[2024-09-03T08:17:33.961+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2024-09-03T08:17:33.978+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

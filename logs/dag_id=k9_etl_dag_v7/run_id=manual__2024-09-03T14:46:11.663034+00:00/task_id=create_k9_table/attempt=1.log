@@ -1,0 +1,54 @@
+[2024-09-03T14:46:14.406+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v7.create_k9_table manual__2024-09-03T14:46:11.663034+00:00 [queued]>
+[2024-09-03T14:46:14.417+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v7.create_k9_table manual__2024-09-03T14:46:11.663034+00:00 [queued]>
+[2024-09-03T14:46:14.418+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 2
+[2024-09-03T14:46:14.436+0000] {taskinstance.py:1380} INFO - Executing <Task(SQLExecuteQueryOperator): create_k9_table> on 2024-09-03 14:46:11.663034+00:00
+[2024-09-03T14:46:14.443+0000] {standard_task_runner.py:57} INFO - Started process 2895 to run task
+[2024-09-03T14:46:14.450+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v7', 'create_k9_table', 'manual__2024-09-03T14:46:11.663034+00:00', '--job-id', '121', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v7.py', '--cfg-path', '/tmp/tmpzz6d4jz0']
+[2024-09-03T14:46:14.452+0000] {standard_task_runner.py:85} INFO - Job 121: Subtask create_k9_table
+[2024-09-03T14:46:14.540+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v7.create_k9_table manual__2024-09-03T14:46:11.663034+00:00 [running]> on host 2624bebdd8ee
+[2024-09-03T14:46:14.631+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='your-email@example.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v7' AIRFLOW_CTX_TASK_ID='create_k9_table' AIRFLOW_CTX_EXECUTION_DATE='2024-09-03T14:46:11.663034+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-09-03T14:46:11.663034+00:00'
+[2024-09-03T14:46:14.632+0000] {sql.py:274} INFO - Executing: 
+        CREATE TABLE IF NOT EXISTS k9_facts (
+            id SERIAL PRIMARY KEY,
+            fact_id TEXT UNIQUE,
+            created_date TIMESTAMP,
+            description TEXT,
+            category VARCHAR(50),
+            last_modified_date TIMESTAMP,
+            is_deleted BOOLEAN DEFAULT FALSE
+        );
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_fact_id ON k9_facts(fact_id);
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_last_modified ON k9_facts(last_modified_date);
+        
+[2024-09-03T14:46:14.639+0000] {base.py:73} INFO - Using connection ID 'k9_care' for task execution.
+[2024-09-03T14:46:14.664+0000] {base.py:73} INFO - Using connection ID 'k9_care' for task execution.
+[2024-09-03T14:46:14.680+0000] {sql.py:418} INFO - Running statement: 
+        CREATE TABLE IF NOT EXISTS k9_facts (
+            id SERIAL PRIMARY KEY,
+            fact_id TEXT UNIQUE,
+            created_date TIMESTAMP,
+            description TEXT,
+            category VARCHAR(50),
+            last_modified_date TIMESTAMP,
+            is_deleted BOOLEAN DEFAULT FALSE
+        );
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_fact_id ON k9_facts(fact_id);
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_last_modified ON k9_facts(last_modified_date);
+        , parameters: None
+[2024-09-03T14:46:14.710+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 280, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 392, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 423, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "pg_class_relname_nsp_index"
+DETAIL:  Key (relname, relnamespace)=(k9_facts_id_seq, 2200) already exists.
+
+[2024-09-03T14:46:14.727+0000] {taskinstance.py:1398} INFO - Marking task as UP_FOR_RETRY. dag_id=k9_etl_dag_v7, task_id=create_k9_table, execution_date=20240903T144611, start_date=20240903T144614, end_date=20240903T144614
+[2024-09-03T14:46:14.734+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 121 for task create_k9_table (duplicate key value violates unique constraint "pg_class_relname_nsp_index"
+DETAIL:  Key (relname, relnamespace)=(k9_facts_id_seq, 2200) already exists.
+; 2895)
+[2024-09-03T14:46:14.756+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2024-09-03T14:46:14.783+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

@@ -1,0 +1,52 @@
+[2024-09-03T11:41:36.166+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v4.create_k9_table scheduled__2024-09-02T00:00:00+00:00 [queued]>
+[2024-09-03T11:41:36.180+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v4.create_k9_table scheduled__2024-09-02T00:00:00+00:00 [queued]>
+[2024-09-03T11:41:36.180+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2024-09-03T11:41:36.192+0000] {taskinstance.py:1380} INFO - Executing <Task(SQLExecuteQueryOperator): create_k9_table> on 2024-09-02 00:00:00+00:00
+[2024-09-03T11:41:36.205+0000] {standard_task_runner.py:57} INFO - Started process 1094 to run task
+[2024-09-03T11:41:36.208+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v4', 'create_k9_table', 'scheduled__2024-09-02T00:00:00+00:00', '--job-id', '20', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v4.py', '--cfg-path', '/tmp/tmp7vcqagcm']
+[2024-09-03T11:41:36.210+0000] {standard_task_runner.py:85} INFO - Job 20: Subtask create_k9_table
+[2024-09-03T11:41:36.284+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v4.create_k9_table scheduled__2024-09-02T00:00:00+00:00 [running]> on host 2624bebdd8ee
+[2024-09-03T11:41:36.358+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v4' AIRFLOW_CTX_TASK_ID='create_k9_table' AIRFLOW_CTX_EXECUTION_DATE='2024-09-02T00:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2024-09-02T00:00:00+00:00'
+[2024-09-03T11:41:36.359+0000] {sql.py:274} INFO - Executing: 
+        CREATE TABLE IF NOT EXISTS k9_facts_v4 (
+            id SERIAL PRIMARY KEY,
+            fact_id INTEGER,
+            created_date TIMESTAMP,
+            description TEXT,
+            category VARCHAR(50),
+            version INTEGER,
+            is_current BOOLEAN,
+            is_deleted BOOLEAN DEFAULT FALSE
+        );
+        
+[2024-09-03T11:41:36.371+0000] {base.py:73} INFO - Using connection ID 'k9_care' for task execution.
+[2024-09-03T11:41:36.382+0000] {base.py:73} INFO - Using connection ID 'k9_care' for task execution.
+[2024-09-03T11:41:36.545+0000] {sql.py:418} INFO - Running statement: 
+        CREATE TABLE IF NOT EXISTS k9_facts_v4 (
+            id SERIAL PRIMARY KEY,
+            fact_id INTEGER,
+            created_date TIMESTAMP,
+            description TEXT,
+            category VARCHAR(50),
+            version INTEGER,
+            is_current BOOLEAN,
+            is_deleted BOOLEAN DEFAULT FALSE
+        );
+        , parameters: None
+[2024-09-03T11:41:36.609+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/operators/sql.py", line 280, in execute
+    output = hook.run(
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 392, in run
+    self._run_command(cur, sql_statement, parameters)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/providers/common/sql/hooks/sql.py", line 423, in _run_command
+    cur.execute(sql_statement)
+psycopg2.errors.UniqueViolation: duplicate key value violates unique constraint "pg_class_relname_nsp_index"
+DETAIL:  Key (relname, relnamespace)=(k9_facts_v4_id_seq, 2200) already exists.
+
+[2024-09-03T11:41:36.623+0000] {taskinstance.py:1398} INFO - Marking task as FAILED. dag_id=k9_etl_dag_v4, task_id=create_k9_table, execution_date=20240902T000000, start_date=20240903T114136, end_date=20240903T114136
+[2024-09-03T11:41:36.630+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 20 for task create_k9_table (duplicate key value violates unique constraint "pg_class_relname_nsp_index"
+DETAIL:  Key (relname, relnamespace)=(k9_facts_v4_id_seq, 2200) already exists.
+; 1094)
+[2024-09-03T11:41:36.648+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2024-09-03T11:41:36.687+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

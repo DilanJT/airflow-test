@@ -1,0 +1,24 @@
+[2024-09-03T15:39:54.414+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v7.check_updates manual__2024-09-03T15:39:39.412156+00:00 [queued]>
+[2024-09-03T15:39:54.419+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v7.check_updates manual__2024-09-03T15:39:39.412156+00:00 [queued]>
+[2024-09-03T15:39:54.419+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 2
+[2024-09-03T15:39:54.427+0000] {taskinstance.py:1380} INFO - Executing <Task(_PythonDecoratedOperator): check_updates> on 2024-09-03 15:39:39.412156+00:00
+[2024-09-03T15:39:54.431+0000] {standard_task_runner.py:57} INFO - Started process 3890 to run task
+[2024-09-03T15:39:54.434+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v7', 'check_updates', 'manual__2024-09-03T15:39:39.412156+00:00', '--job-id', '224', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v7.py', '--cfg-path', '/tmp/tmpxyge9m6c']
+[2024-09-03T15:39:54.435+0000] {standard_task_runner.py:85} INFO - Job 224: Subtask check_updates
+[2024-09-03T15:39:54.468+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v7.check_updates manual__2024-09-03T15:39:39.412156+00:00 [running]> on host 2624bebdd8ee
+[2024-09-03T15:39:54.525+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='your-email@example.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v7' AIRFLOW_CTX_TASK_ID='check_updates' AIRFLOW_CTX_EXECUTION_DATE='2024-09-03T15:39:39.412156+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-09-03T15:39:39.412156+00:00'
+[2024-09-03T15:39:54.530+0000] {taskinstance.py:1935} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/decorators/base.py", line 221, in execute
+    return_value = super().execute(context)
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 192, in execute
+    return_value = self.execute_callable()
+  File "/home/airflow/.local/lib/python3.8/site-packages/airflow/operators/python.py", line 209, in execute_callable
+    return self.python_callable(*self.op_args, **self.op_kwargs)
+  File "/opt/airflow/dags/k9_etl_dag_v7.py", line 153, in check_updates
+    report = (f"ETL Report for {datetime.now().strftime('%Y-%m-%d')}:\n"
+KeyError: 'upserted'
+[2024-09-03T15:39:54.545+0000] {taskinstance.py:1398} INFO - Marking task as UP_FOR_RETRY. dag_id=k9_etl_dag_v7, task_id=check_updates, execution_date=20240903T153939, start_date=20240903T153954, end_date=20240903T153954
+[2024-09-03T15:39:54.553+0000] {standard_task_runner.py:104} ERROR - Failed to execute job 224 for task check_updates ('upserted'; 3890)
+[2024-09-03T15:39:54.579+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 1
+[2024-09-03T15:39:54.596+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check

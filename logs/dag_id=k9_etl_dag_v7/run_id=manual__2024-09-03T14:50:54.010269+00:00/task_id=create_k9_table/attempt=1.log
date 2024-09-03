@@ -1,0 +1,40 @@
+[2024-09-03T14:50:55.749+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v7.create_k9_table manual__2024-09-03T14:50:54.010269+00:00 [queued]>
+[2024-09-03T14:50:55.760+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v7.create_k9_table manual__2024-09-03T14:50:54.010269+00:00 [queued]>
+[2024-09-03T14:50:55.760+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 2
+[2024-09-03T14:50:55.787+0000] {taskinstance.py:1380} INFO - Executing <Task(SQLExecuteQueryOperator): create_k9_table> on 2024-09-03 14:50:54.010269+00:00
+[2024-09-03T14:50:55.802+0000] {standard_task_runner.py:57} INFO - Started process 2996 to run task
+[2024-09-03T14:50:55.808+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v7', 'create_k9_table', 'manual__2024-09-03T14:50:54.010269+00:00', '--job-id', '135', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v7.py', '--cfg-path', '/tmp/tmp83r9ydbn']
+[2024-09-03T14:50:55.809+0000] {standard_task_runner.py:85} INFO - Job 135: Subtask create_k9_table
+[2024-09-03T14:50:55.845+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v7.create_k9_table manual__2024-09-03T14:50:54.010269+00:00 [running]> on host 2624bebdd8ee
+[2024-09-03T14:50:55.912+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_EMAIL='your-email@example.com' AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v7' AIRFLOW_CTX_TASK_ID='create_k9_table' AIRFLOW_CTX_EXECUTION_DATE='2024-09-03T14:50:54.010269+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-09-03T14:50:54.010269+00:00'
+[2024-09-03T14:50:55.913+0000] {sql.py:274} INFO - Executing: 
+        CREATE TABLE IF NOT EXISTS k9_facts (
+            id SERIAL PRIMARY KEY,
+            fact_id TEXT UNIQUE,
+            created_date TIMESTAMP,
+            description TEXT,
+            category VARCHAR(50),
+            last_modified_date TIMESTAMP,
+            is_deleted BOOLEAN DEFAULT FALSE
+        );
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_fact_id ON k9_facts(fact_id);
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_last_modified ON k9_facts(last_modified_date);
+        
+[2024-09-03T14:50:55.920+0000] {base.py:73} INFO - Using connection ID 'k9_care' for task execution.
+[2024-09-03T14:50:55.929+0000] {base.py:73} INFO - Using connection ID 'k9_care' for task execution.
+[2024-09-03T14:50:55.946+0000] {sql.py:418} INFO - Running statement: 
+        CREATE TABLE IF NOT EXISTS k9_facts (
+            id SERIAL PRIMARY KEY,
+            fact_id TEXT UNIQUE,
+            created_date TIMESTAMP,
+            description TEXT,
+            category VARCHAR(50),
+            last_modified_date TIMESTAMP,
+            is_deleted BOOLEAN DEFAULT FALSE
+        );
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_fact_id ON k9_facts(fact_id);
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_last_modified ON k9_facts(last_modified_date);
+        , parameters: None
+[2024-09-03T14:50:55.955+0000] {taskinstance.py:1398} INFO - Marking task as SUCCESS. dag_id=k9_etl_dag_v7, task_id=create_k9_table, execution_date=20240903T145054, start_date=20240903T145055, end_date=20240903T145055
+[2024-09-03T14:50:55.991+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2024-09-03T14:50:56.024+0000] {taskinstance.py:2776} INFO - 1 downstream tasks scheduled from follow-on schedule check

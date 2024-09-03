@@ -1,0 +1,14 @@
+[2024-09-03T13:37:04.423+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: k9_etl_dag_v5.log_completion manual__2024-09-03T13:36:56.626211+00:00 [queued]>
+[2024-09-03T13:37:04.451+0000] {taskinstance.py:1157} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: k9_etl_dag_v5.log_completion manual__2024-09-03T13:36:56.626211+00:00 [queued]>
+[2024-09-03T13:37:04.452+0000] {taskinstance.py:1359} INFO - Starting attempt 1 of 1
+[2024-09-03T13:37:04.469+0000] {taskinstance.py:1380} INFO - Executing <Task(_PythonDecoratedOperator): log_completion> on 2024-09-03 13:36:56.626211+00:00
+[2024-09-03T13:37:04.476+0000] {standard_task_runner.py:57} INFO - Started process 1741 to run task
+[2024-09-03T13:37:04.479+0000] {standard_task_runner.py:84} INFO - Running: ['***', 'tasks', 'run', 'k9_etl_dag_v5', 'log_completion', 'manual__2024-09-03T13:36:56.626211+00:00', '--job-id', '54', '--raw', '--subdir', 'DAGS_FOLDER/k9_etl_dag_v5.py', '--cfg-path', '/tmp/tmp5h9x5s62']
+[2024-09-03T13:37:04.480+0000] {standard_task_runner.py:85} INFO - Job 54: Subtask log_completion
+[2024-09-03T13:37:04.537+0000] {task_command.py:415} INFO - Running <TaskInstance: k9_etl_dag_v5.log_completion manual__2024-09-03T13:36:56.626211+00:00 [running]> on host 2624bebdd8ee
+[2024-09-03T13:37:04.611+0000] {taskinstance.py:1660} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='***' AIRFLOW_CTX_DAG_ID='k9_etl_dag_v5' AIRFLOW_CTX_TASK_ID='log_completion' AIRFLOW_CTX_EXECUTION_DATE='2024-09-03T13:36:56.626211+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2024-09-03T13:36:56.626211+00:00'
+[2024-09-03T13:37:04.613+0000] {k9_etl_dag_v5.py:188} INFO - K9 ETL job completed. Update result: Processed 14 records. 0 new or updated records. 0 records marked as deleted.
+[2024-09-03T13:37:04.613+0000] {python.py:194} INFO - Done. Returned value was: Job completed successfully
+[2024-09-03T13:37:04.627+0000] {taskinstance.py:1398} INFO - Marking task as SUCCESS. dag_id=k9_etl_dag_v5, task_id=log_completion, execution_date=20240903T133656, start_date=20240903T133704, end_date=20240903T133704
+[2024-09-03T13:37:04.663+0000] {local_task_job_runner.py:228} INFO - Task exited with return code 0
+[2024-09-03T13:37:04.675+0000] {taskinstance.py:2776} INFO - 0 downstream tasks scheduled from follow-on schedule check
