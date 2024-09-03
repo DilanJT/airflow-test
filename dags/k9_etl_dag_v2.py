@@ -12,6 +12,7 @@ import json
 from datetime import datetime, timedelta, timezone
 import logging
 from hashlib import md5
+import sql
 
 # Define default_args for the DAG
 default_args = {
@@ -27,7 +28,7 @@ default_args = {
 
 # Define the DAG
 with DAG(
-    dag_id="k9_etl_dag",
+    dag_id="k9_etl_dag_v2",
     description="ETL DAG for K9 facts with versioning and error handling",
     default_args=default_args,
     schedule_interval="@daily",
