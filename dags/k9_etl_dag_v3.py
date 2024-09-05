@@ -7,6 +7,7 @@ from airflow.models import Connection
 from airflow.operators.python import get_current_context
 from airflow.exceptions import AirflowException
 from airflow.operators.email import EmailOperator
+import pendulum
 import requests
 import json
 from datetime import datetime, timedelta, timezone
@@ -30,7 +31,7 @@ with DAG(
     description="ETL DAG for K9 facts with versioning and error handling",
     default_args=default_args,
     schedule_interval="@daily",
-    start_date=days_ago(0),
+    start_date=pendulum.datetime(2024, 9, 3, tz="UTC"),
     catchup=False,
     tags=["k9_care", "etl"],
 ) as dag:
@@ -88,7 +89,7 @@ with DAG(
 
     @task()
     def load_data(data):
-        ti = get_current_context()["ti"]
+        # ti = get_current_context()["ti"]
         conn = Connection.get_connection_from_secrets("k9_care")
         import psycopg2
         from psycopg2 import sql
