@@ -1,14 +1,11 @@
 import os
 from airflow import DAG, Dataset
 from airflow.decorators import task
-from airflow.utils.dates import days_ago
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
 from airflow.models import Connection
 from airflow.operators.python import get_current_context
 from airflow.exceptions import AirflowException
 from airflow.operators.email import EmailOperator
-import pendulum
-import requests
 import json
 from datetime import datetime, timedelta, timezone
 import logging
@@ -29,46 +26,36 @@ default_args = {
 
 # Define the DAG
 with DAG(
-    dag_id="k9_etl_dag_v3",
-    description="ETL DAG for K9 facts with versioning and error handling",
+    dag_id="k9_etl_dag",
+    description="ETL DAG for K9 care dog facts",
     default_args=default_args,
     schedule=[k9_dataset],
     start_date=datetime(2024, 9, 3),
     catchup=False,
-    tags=["k9_care", "etl"],
+    tags=["k9_care", "process_dataset"],
 ) as dag:
 
-    # Task: Create or update the k9_facts_v3 table
+    # Task: Create or update the k9_facts table
     create_pet_table = SQLExecuteQueryOperator(
         task_id="create_k9_table",
         conn_id="k9_care",
         sql="""
-        CREATE TABLE IF NOT EXISTS k9_facts_v3 (
+        CREATE TABLE IF NOT EXISTS k9_facts (
             id SERIAL PRIMARY KEY,
             fact_id TEXT UNIQUE,
             created_date TIMESTAMP,
             description TEXT,
             category VARCHAR(50),
             last_modified_date TIMESTAMP,
-            is_deleted BOOLEAN DEFAULT FALSE,
             version INTEGER DEFAULT 0
         );
-        CREATE INDEX IF NOT EXISTS idx_k9_facts_v3_fact_id ON k9_facts_v3(fact_id);
-        CREATE INDEX IF NOT EXISTS idx_k9_facts_v3_last_modified ON k9_facts_v3(last_modified_date);
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_fact_id ON k9_facts(fact_id);
+        CREATE INDEX IF NOT EXISTS idx_k9_facts_last_modified ON k9_facts(last_modified_date);
         """,
     )
 
     @task()
     def extract():
-        # url = "https://raw.githubusercontent.com/vetstoria/random-k9-etl/main/source_data.json"
-        # response = requests.get(url)
-        # if response.status_code != 200:
-        #     raise Exception(f"Failed to fetch data: HTTP {response.status_code}")
-        # data = response.json()
-        # return data
-
-        
-
         file_path = "/opt/airflow/data/k9_facts.json"
         if not os.path.exists(file_path):
             raise Exception(f"File not found: {file_path}")
@@ -100,7 +87,6 @@ with DAG(
 
     @task()
     def load_data(data):
-        # ti = get_current_context()["ti"]
         conn = Connection.get_connection_from_secrets("k9_care")
         import psycopg2
         from psycopg2 import sql
@@ -116,9 +102,9 @@ with DAG(
                 port=conn.port,
             ) as connection:
                 with connection.cursor() as cursor:
-                    # Get existing fact_ids which are not deleted
+                    # Get existing fact_ids
                     cursor.execute(
-                        "SELECT fact_id, description, category FROM k9_facts_v3 WHERE is_deleted = FALSE"
+                        "SELECT fact_id, description, category FROM k9_facts"
                     )
                     existing_facts = {
                         row[0]: {"description": row[1], "category": row[2]}
@@ -140,7 +126,7 @@ with DAG(
                                 # Update the existing record and increment version
                                 cursor.execute(
                                     """
-                                    UPDATE k9_facts_v3
+                                    UPDATE k9_facts
                                     SET description = %s, category = %s, last_modified_date = %s, version = version + 1
                                     WHERE fact_id = %s
                                 """,
@@ -157,7 +143,7 @@ with DAG(
                             # Insert new record
                             cursor.execute(
                                 """
-                                INSERT INTO k9_facts_v3 (fact_id, created_date, description, category, last_modified_date, version)
+                                INSERT INTO k9_facts (fact_id, created_date, description, category, last_modified_date, version)
                                 VALUES (%s, %s, %s, %s, %s, 0)
                             """,
                                 (
@@ -170,18 +156,17 @@ with DAG(
                             )
                             results["inserted"] += 1
 
-                    # Mark records as deleted if they're not in the incoming data
+                    # Fully delete records that are not in the incoming data
                     if existing_facts:
                         delete_query = sql.SQL(
                             """
-                            UPDATE k9_facts_v3 
-                            SET is_deleted = TRUE, last_modified_date = %s, version = version + 1 
+                            DELETE FROM k9_facts 
                             WHERE fact_id IN ({})
                         """
                         ).format(
                             sql.SQL(",").join(sql.Placeholder() * len(existing_facts))
                         )
-                        cursor.execute(delete_query, (now, *existing_facts.keys()))
+                        cursor.execute(delete_query, tuple(existing_facts.keys()))
                         results["deleted"] = cursor.rowcount
 
                     connection.commit()
@@ -199,7 +184,7 @@ with DAG(
             f"Processed {len(transformed_data)} records.\n"
             f"{execution_results['inserted']} records were inserted.\n"
             f"{execution_results['updated']} records were updated.\n"
-            f"{execution_results['deleted']} records were marked as deleted.\n"
+            f"{execution_results['deleted']} records were fully deleted.\n"
         )
 
         if (
