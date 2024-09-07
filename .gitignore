@@ -1,4 +1,10 @@
 .env
 .venv
-smtp.env
+*.env
 logs/
+.pytest_cache/
+tests/__pycache__/
+dags/
+
+.vscode/
+.idea/

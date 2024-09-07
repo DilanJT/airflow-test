@@ -44,7 +44,6 @@ class TestK9ETLDAG(unittest.TestCase):
             "transform",
             "load_data",
             "check_updates",
-            "send_report_email",
             "send_success_email",
             "send_failure_email",
             "log_completion",

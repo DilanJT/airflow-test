@@ -11,34 +11,36 @@ from datetime import datetime, timedelta, timezone
 import logging
 from hashlib import md5
 
-k9_dataset = Dataset("/opt/airflow/data/k9_facts.json")
+DATASET_IDENTIFIER = os.environ.get('K9_DATASET_PATH', '/opt/airflow/data/k9_facts.json')
+EMAIL_RECIPIENT = os.environ.get('K9_EMAIL_RECIPIENT', 'default@example.com')
+DB_CONN_ID = os.environ.get('K9_DB_CONN_ID', 'k9_care')
+START_DATE = os.environ.get('K9_START_DATE', '2024-09-03')
 
-# Define default_args for the DAG
+k9_dataset = Dataset(DATASET_IDENTIFIER)
+
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
     "email_on_failure": True,
-    "email_on_success": True,
+    "email_on_success": False,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
 }
 
-# Define the DAG
 with DAG(
     dag_id="k9_etl_dag",
     description="ETL DAG for K9 care dog facts",
     default_args=default_args,
     schedule=[k9_dataset],
-    start_date=datetime(2024, 9, 3),
+    start_date=START_DATE,
     catchup=False,
     tags=["k9_care", "process_dataset"],
 ) as dag:
 
-    # Task: Create or update the k9_facts table
     create_pet_table = SQLExecuteQueryOperator(
         task_id="create_k9_table",
-        conn_id="k9_care",
+        conn_id=DB_CONN_ID,
         sql="""
         CREATE TABLE IF NOT EXISTS k9_facts (
             id SERIAL PRIMARY KEY,
@@ -56,41 +58,47 @@ with DAG(
 
     @task()
     def extract():
-        file_path = "/opt/airflow/data/k9_facts.json"
-        if not os.path.exists(file_path):
-            raise Exception(f"File not found: {file_path}")
-        with open(file_path, "r") as file:
-            data = json.load(file)
-        return data
+        try:
+            file_path = "/opt/airflow/data/k9_facts.json"
+            if not os.path.exists(file_path):
+                raise Exception(f"File not found: {file_path}")
+            with open(file_path, "r") as file:
+                data = json.load(file)
+            return data
+        except Exception as e:
+            logging.error(f"Exception occurred in data extraction :{str(e)}")
+            raise
 
     @task()
     def transform(data: list):
         transformed_data = []
-        for item in data:
-            fact = item.get("fact", "N/A")
-            created_date = item.get("created_date", "N/A")
-            category = (
-                "with_numbers"
-                if any(char.isdigit() for char in fact)
-                else "without_numbers"
-            )
-            fact_id = md5(created_date.encode()).hexdigest()
-            transformed_data.append(
-                {
-                    "fact_id": fact_id,
-                    "description": fact,
-                    "created_date": created_date,
-                    "category": category,
-                }
-            )
+        try:
+            for item in data:
+                fact = item.get("fact", "N/A")
+                created_date = item.get("created_date", "N/A")
+                category = (
+                    "with_numbers"
+                    if any(char.isdigit() for char in fact)
+                    else "without_numbers"
+                )
+                fact_id = md5(created_date.encode()).hexdigest()
+                transformed_data.append(
+                    {
+                        "fact_id": fact_id,
+                        "description": fact,
+                        "created_date": created_date,
+                        "category": category,
+                    }
+                )
+        except Exception as e:
+            logging.error(f"Exception occurred in data transformation :{str(e)}")
         return transformed_data
 
     @task()
     def load_data(data):
-        conn = Connection.get_connection_from_secrets("k9_care")
+        conn = Connection.get_connection_from_secrets(DB_CONN_ID)
         import psycopg2
         from psycopg2 import sql
-        from datetime import datetime
 
         results = {"inserted": 0, "updated": 0, "deleted": 0}
         try:
@@ -123,7 +131,6 @@ with DAG(
                                 or item["category"]
                                 != existing_facts[fact_id]["category"]
                             ):
-                                # Update the existing record and increment version
                                 cursor.execute(
                                     """
                                     UPDATE k9_facts
@@ -140,7 +147,6 @@ with DAG(
                                 results["updated"] += 1
                             del existing_facts[fact_id]
                         else:
-                            # Insert new record
                             cursor.execute(
                                 """
                                 INSERT INTO k9_facts (fact_id, created_date, description, category, last_modified_date, version)
@@ -156,7 +162,7 @@ with DAG(
                             )
                             results["inserted"] += 1
 
-                    # Fully delete records that are not in the incoming data
+                    # delete records that are not in the incoming data
                     if existing_facts:
                         delete_query = sql.SQL(
                             """
@@ -180,11 +186,11 @@ with DAG(
         transformed_data = ti.xcom_pull(task_ids="transform")
 
         report = (
-            f"ETL Report for {datetime.now().strftime('%Y-%m-%d')}:\n"
-            f"Processed {len(transformed_data)} records.\n"
-            f"{execution_results['inserted']} records were inserted.\n"
-            f"{execution_results['updated']} records were updated.\n"
-            f"{execution_results['deleted']} records were fully deleted.\n"
+            f"ETL Report for {datetime.now().strftime('%Y-%m-%d')}:\n</br>"
+            f"Processed {len(transformed_data)} records.\n</br>"
+            f"{execution_results['inserted']} records were inserted.\n</br>"
+            f"{execution_results['updated']} records were updated.\n</br>"
+            f"{execution_results['deleted']} records were fully deleted.\n</br>"
         )
 
         if (
@@ -198,42 +204,28 @@ with DAG(
 
         return report
 
-    # Extract and transform data
     extracted_data = extract()
     transformed_data = transform(extracted_data)
-
-    # Load data and get execution results
     execution_results = load_data(transformed_data)
-
-    # Check for updates and generate report
     update_report = check_updates(execution_results)
-
-    # Send email with update report
-    send_report_email = EmailOperator(
-        task_id="send_report_email",
-        to="dicmandilan@gmail.com",
-        subject="K9 Facts ETL Daily Update Report",
-        html_content="{{ task_instance.xcom_pull(task_ids='check_updates') }}",
-    )
 
     # Email on success
     email_success = EmailOperator(
         task_id="send_success_email",
-        to="dicmandilan@gmail.com",
+        to=EMAIL_RECIPIENT,
         subject="K9 ETL DAG Completed Successfully",
-        html_content="The K9 ETL DAG has completed successfully. Here's the update report:<br><br>{{ task_instance.xcom_pull(task_ids='check_updates') }}",
+        html_content="The K9 ETL DAG has completed successfully. Here's the report:<br><br>{{ task_instance.xcom_pull(task_ids='check_updates') }}",
     )
 
     # Email on failure
     email_failure = EmailOperator(
         task_id="send_failure_email",
-        to="dicmandilan@gmail.com",
+        to=EMAIL_RECIPIENT,
         subject="K9 ETL DAG Failed",
         html_content="The K9 ETL DAG has failed. Please check the Airflow logs for more details.",
         trigger_rule="one_failed",
     )
 
-    # Log completion
     @task()
     def log_completion(update_report: str):
         logging.info(f"K9 ETL job completed. Update report:\n{update_report}")
@@ -250,6 +242,6 @@ with DAG(
         >> update_report
         >> completion_log
     )
-    completion_log >> send_report_email >> [email_success, email_failure]
+    completion_log >> [email_success, email_failure]
 
 print("DAG Compiled Successfully")
