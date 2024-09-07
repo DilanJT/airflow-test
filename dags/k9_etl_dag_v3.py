@@ -1,5 +1,5 @@
 import os
-from airflow import DAG
+from airflow import DAG, Dataset
 from airflow.decorators import task
 from airflow.utils.dates import days_ago
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
@@ -13,6 +13,8 @@ import json
 from datetime import datetime, timedelta, timezone
 import logging
 from hashlib import md5
+
+k9_dataset = Dataset("/opt/airflow/data/k9_facts.json")
 
 # Define default_args for the DAG
 default_args = {
@@ -30,8 +32,8 @@ with DAG(
     dag_id="k9_etl_dag_v3",
     description="ETL DAG for K9 facts with versioning and error handling",
     default_args=default_args,
-    schedule_interval="@daily",
-    start_date=pendulum.datetime(2024, 9, 3, tz="UTC"),
+    schedule=[k9_dataset],
+    start_date=datetime(2024, 9, 3),
     catchup=False,
     tags=["k9_care", "etl"],
 ) as dag:
@@ -58,6 +60,15 @@ with DAG(
 
     @task()
     def extract():
+        # url = "https://raw.githubusercontent.com/vetstoria/random-k9-etl/main/source_data.json"
+        # response = requests.get(url)
+        # if response.status_code != 200:
+        #     raise Exception(f"Failed to fetch data: HTTP {response.status_code}")
+        # data = response.json()
+        # return data
+
+        
+
         file_path = "/opt/airflow/data/k9_facts.json"
         if not os.path.exists(file_path):
             raise Exception(f"File not found: {file_path}")
@@ -126,7 +137,7 @@ with DAG(
                                 or item["category"]
                                 != existing_facts[fact_id]["category"]
                             ):
-                                # Update existing record and increment version
+                                # Update the existing record and increment version
                                 cursor.execute(
                                     """
                                     UPDATE k9_facts_v3
