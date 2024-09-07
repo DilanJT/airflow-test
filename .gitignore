@@ -1,10 +1,12 @@
 .env
+.smtp.env
 .venv
 *.env
 logs/
 .pytest_cache/
 tests/__pycache__/
-dags/
+dags/__pycache__/
+utils/__pycache__/
 
 .vscode/
 .idea/
