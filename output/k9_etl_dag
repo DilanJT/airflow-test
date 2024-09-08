@@ -1,0 +1,18 @@
+digraph k9_etl_dag {
+	graph [label=k9_etl_dag labelloc=t rankdir=LR]
+	check_updates [color="#000000" fillcolor="#ffefeb" label=check_updates shape=rectangle style="filled,rounded"]
+	create_k9_table [color="#000000" fillcolor="#cdaaed" label=create_k9_table shape=rectangle style="filled,rounded"]
+	extract [color="#000000" fillcolor="#ffefeb" label=extract shape=rectangle style="filled,rounded"]
+	load_data [color="#000000" fillcolor="#ffefeb" label=load_data shape=rectangle style="filled,rounded"]
+	log_completion [color="#000000" fillcolor="#ffefeb" label=log_completion shape=rectangle style="filled,rounded"]
+	send_failure_email [color="#000000" fillcolor="#e6faf9" label=send_failure_email shape=rectangle style="filled,rounded"]
+	send_success_email [color="#000000" fillcolor="#e6faf9" label=send_success_email shape=rectangle style="filled,rounded"]
+	transform [color="#000000" fillcolor="#ffefeb" label=transform shape=rectangle style="filled,rounded"]
+	check_updates -> log_completion
+	create_k9_table -> extract
+	extract -> transform
+	load_data -> check_updates
+	log_completion -> send_failure_email
+	log_completion -> send_success_email
+	transform -> load_data
+}

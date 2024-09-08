@@ -1,0 +1,14 @@
+digraph k9_dataset_check {
+	graph [label=k9_dataset_check labelloc=t rankdir=LR]
+	check_dataset [color="#000000" fillcolor="#ffefeb" label=check_dataset shape=rectangle style="filled,rounded"]
+	check_updates [color="#000000" fillcolor="#ffefeb" label=check_updates shape=rectangle style="filled,rounded"]
+	not_update_dataset [color="#000000" fillcolor="#ffefeb" label=not_update_dataset shape=rectangle style="filled,rounded"]
+	send_no_update_email [color="#000000" fillcolor="#e6faf9" label=send_no_update_email shape=rectangle style="filled,rounded"]
+	send_update_email [color="#000000" fillcolor="#e6faf9" label=send_update_email shape=rectangle style="filled,rounded"]
+	update_dataset [color="#000000" fillcolor="#ffefeb" label=update_dataset shape=rectangle style="filled,rounded"]
+	check_dataset -> check_updates
+	check_updates -> not_update_dataset
+	check_updates -> send_no_update_email
+	check_updates -> send_update_email
+	check_updates -> update_dataset
+}

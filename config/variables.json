@@ -1,0 +1,6 @@
+{
+    "k9_email_recipient": "dicmandilan@gmail.com",
+    "k9_start_date": "2024-09-03",
+    "k9_db_conn_id": "k9_care",
+    "source_url": "https://raw.githubusercontent.com/vetstoria/random-k9-etl/main/source_data.json"
+}

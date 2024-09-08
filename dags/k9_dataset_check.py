@@ -4,18 +4,15 @@ from airflow.decorators import task
 from airflow.datasets import Dataset
 from airflow.operators.python import BranchPythonOperator
 from airflow.operators.email import EmailOperator
+from airflow.models import Variable
 from datetime import datetime, timedelta
 import json
 import os
 import requests
 
-DATASET_IDENTIFIER = os.environ.get('K9_DATASET_PATH', '/opt/airflow/data/k9_facts.json')
-SOURCE_URL = os.environ.get('K9_SOURCE_URL', 'https://raw.githubusercontent.com/vetstoria/random-k9-etl/main/source_data.json')
-EMAIL_RECIPIENT = os.environ.get('K9_EMAIL_RECIPIENT', 'default@example.com')
-START_DATE = os.environ.get('K9_START_DATE', '2024-09-03')
 
+k9_dataset = Dataset("k9_facts.json")
 
-k9_dataset = Dataset(DATASET_IDENTIFIER)
 
 def choose_branch(ti):
     changes_detected = ti.xcom_pull(task_ids="check_dataset")
@@ -39,14 +36,14 @@ with DAG(
     default_args=default_args,
     description="Check for updates in K9 dataset and update local file if needed",
     schedule_interval="@daily",
-    start_date=datetime.isoformat(START_DATE),
+    start_date=datetime.fromisoformat("2024-09-03"),
     catchup=False,
     tags=["k9_care", "dataset_check"],
 ) as dag:
 
     @task()
     def check_dataset():
-        source_url = SOURCE_URL
+        source_url = Variable.get("source_url", "")
         local_file_path = "/opt/airflow/data/k9_facts.json"
 
         try:
@@ -80,16 +77,13 @@ with DAG(
             logging.error(f"Exception occured: {str(e)}")
             raise
 
-
     @task(outlets=[k9_dataset])
     def update_dataset():
         logging.info("Updating dataset and triggering downstream DAG.")
 
-
     @task()
     def not_update_dataset():
         logging.info("No updates, downstream dag will not be triggered")
-
 
     check_updates = BranchPythonOperator(
         task_id="check_updates", python_callable=choose_branch
@@ -97,18 +91,18 @@ with DAG(
 
     email_update = EmailOperator(
         task_id="send_update_email",
-        to=EMAIL_RECIPIENT,
+        to="{{ var.value.k9_email_recipient }}",
         subject="K9 Dataset Update Notification - {{ ds }}",
         html_content="Changes detected in K9 dataset on {{ ds }}. Triggering k9_etl_dag.",
     )
 
     email_no_update = EmailOperator(
         task_id="send_no_update_email",
-        to=EMAIL_RECIPIENT,
+        to="{{ var.value.k9_email_recipient }}",
         subject="K9 Dataset No Update Notification - {{ ds }}",
         html_content="No changes detected in K9 dataset on {{ ds }}. k9_etl_dag will not be triggered.",
     )
-    
+
     # Triggers the dataset only if there are updates in the source file
     (
         check_dataset()

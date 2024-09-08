@@ -82,6 +82,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/output:/opt/airflow/output
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
+    - ${AIRFLOW_PROJ_DIR:-.}/sql:/opt/airflow/sql
   user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
     &airflow-common-depends-on
@@ -195,6 +196,30 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
+  airflow-variables-conns:
+    <<: *airflow-common
+    command: >
+      bash -c '
+        airflow db init &&
+        airflow db upgrade &&
+        airflow variables import /opt/airflow/config/variables.json &&
+        airflow connections add "k9_care" \
+          --conn-type "postgres" \
+          --conn-login "newuser" \
+          --conn-password "root" \
+          --conn-host "host.docker.internal" \
+          --conn-port "5432" \
+          --conn-schema "airflow_demo" &&
+        echo "Variables imported and connection added successfully"
+      '
+    volumes:
+      - ${AIRFLOW_PROJ_DIR:-.}/config/variables.json:/opt/airflow/config/variables.json
+    # restart: on-failure
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
   airflow-init:
     <<: *airflow-common
     entrypoint: /bin/bash
@@ -261,12 +286,13 @@ services:
         mkdir -p /sources/logs /sources/dags /sources/plugins
         chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
         exec /entrypoint airflow version
-        airflow connections add 'k9_care' --conn-type 'Postgres' --conn-host 'host.docker.internal' --conn-schema 'airflow_demo' --conn-login 'newuser' --conn-password 'root' --conn-port 5432
+
         # # Run database migration and create user
         # exec /entrypoint bash -c "
         # airflow db upgrade &&
         # airflow users create --username dilan --password string123 --firstname Admin --lastname User --role Admin --email admin@example.com || true
         # airflow version"
+        # airflow variables import /opt/airflow/config/airflow_variables.json
 
     # yamllint enable rule:line-length
     environment:
@@ -319,6 +345,7 @@ services:
 
   airflow-tests:
     <<: *airflow-common
+    restart: "no"
     environment:
       <<: *airflow-common-env
       AIRFLOW__CORE__UNIT_TEST_MODE: 'True'
@@ -332,7 +359,8 @@ services:
       bash -c "
         airflow db init &&
         airflow db upgrade &&
-        pytest -v -s /opt/airflow/tests/test_k9_etl_dag.py
+        pytest -v -s /opt/airflow/tests/test_k9_etl_dag.py &&
+        pytest -v -s /opt/airflow/tests/test_k9_dataset_check.py
       "
     depends_on:
       <<: *airflow-common-depends-on

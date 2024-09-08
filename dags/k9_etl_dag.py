@@ -2,27 +2,23 @@ import os
 from airflow import DAG, Dataset
 from airflow.decorators import task
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
-from airflow.models import Connection
+from airflow.models import Connection, Variable
 from airflow.operators.python import get_current_context
 from airflow.exceptions import AirflowException
 from airflow.operators.email import EmailOperator
 import json
 from datetime import datetime, timedelta, timezone
 import logging
-from hashlib import md5
 
-DATASET_IDENTIFIER = os.environ.get('K9_DATASET_PATH', '/opt/airflow/data/k9_facts.json')
-EMAIL_RECIPIENT = os.environ.get('K9_EMAIL_RECIPIENT', 'default@example.com')
-DB_CONN_ID = os.environ.get('K9_DB_CONN_ID', 'k9_care')
-START_DATE = os.environ.get('K9_START_DATE', '2024-09-03')
 
-k9_dataset = Dataset(DATASET_IDENTIFIER)
+k9_dataset = Dataset("k9_facts.json")
+
 
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
     "email_on_failure": True,
-    "email_on_success": False,
+    "email_on_success": True,
     "email_on_retry": False,
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
@@ -33,29 +29,17 @@ with DAG(
     description="ETL DAG for K9 care dog facts",
     default_args=default_args,
     schedule=[k9_dataset],
-    start_date=START_DATE,
+    start_date=datetime.fromisoformat("2024-09-03"),
     catchup=False,
     tags=["k9_care", "process_dataset"],
 ) as dag:
 
     create_pet_table = SQLExecuteQueryOperator(
         task_id="create_k9_table",
-        conn_id=DB_CONN_ID,
-        sql="""
-        CREATE TABLE IF NOT EXISTS k9_facts (
-            id SERIAL PRIMARY KEY,
-            fact_id TEXT UNIQUE,
-            created_date TIMESTAMP,
-            description TEXT,
-            category VARCHAR(50),
-            last_modified_date TIMESTAMP,
-            version INTEGER DEFAULT 0
-        );
-        CREATE INDEX IF NOT EXISTS idx_k9_facts_fact_id ON k9_facts(fact_id);
-        CREATE INDEX IF NOT EXISTS idx_k9_facts_last_modified ON k9_facts(last_modified_date);
-        """,
+        conn_id="{{ var.value.k9_db_conn_id }}",
+        sql="/sql/k9_facts_create_table.sql",
     )
-
+    # TODO: change the modified date to modified_at
     @task()
     def extract():
         try:
@@ -71,17 +55,15 @@ with DAG(
 
     @task()
     def transform(data: list):
+        from utils import helpers
+
         transformed_data = []
         try:
             for item in data:
                 fact = item.get("fact", "N/A")
                 created_date = item.get("created_date", "N/A")
-                category = (
-                    "with_numbers"
-                    if any(char.isdigit() for char in fact)
-                    else "without_numbers"
-                )
-                fact_id = md5(created_date.encode()).hexdigest()
+                category = helpers.categorize_fact(fact)
+                fact_id = helpers.encode_to_md5_hash(created_date)
                 transformed_data.append(
                     {
                         "fact_id": fact_id,
@@ -92,13 +74,16 @@ with DAG(
                 )
         except Exception as e:
             logging.error(f"Exception occurred in data transformation :{str(e)}")
+            raise
         return transformed_data
 
     @task()
     def load_data(data):
-        conn = Connection.get_connection_from_secrets(DB_CONN_ID)
         import psycopg2
         from psycopg2 import sql
+
+        conn_id = Variable.get("k9_db_conn_id", default_var="k9_care")
+        conn = Connection.get_connection_from_secrets(conn_id)
 
         results = {"inserted": 0, "updated": 0, "deleted": 0}
         try:
@@ -182,15 +167,16 @@ with DAG(
 
     @task()
     def check_updates(execution_results):
+        from utils import helpers
+
         ti = get_current_context()["ti"]
         transformed_data = ti.xcom_pull(task_ids="transform")
 
-        report = (
-            f"ETL Report for {datetime.now().strftime('%Y-%m-%d')}:\n</br>"
-            f"Processed {len(transformed_data)} records.\n</br>"
-            f"{execution_results['inserted']} records were inserted.\n</br>"
-            f"{execution_results['updated']} records were updated.\n</br>"
-            f"{execution_results['deleted']} records were fully deleted.\n</br>"
+        report = helpers.get_formatted_report(
+            len(transformed_data),
+            execution_results["inserted"],
+            execution_results["updated"],
+            execution_results["deleted"],
         )
 
         if (
@@ -212,7 +198,7 @@ with DAG(
     # Email on success
     email_success = EmailOperator(
         task_id="send_success_email",
-        to=EMAIL_RECIPIENT,
+        to="{{ var.value.k9_email_recipient }}",
         subject="K9 ETL DAG Completed Successfully",
         html_content="The K9 ETL DAG has completed successfully. Here's the report:<br><br>{{ task_instance.xcom_pull(task_ids='check_updates') }}",
     )
@@ -220,7 +206,7 @@ with DAG(
     # Email on failure
     email_failure = EmailOperator(
         task_id="send_failure_email",
-        to=EMAIL_RECIPIENT,
+        to="{{ var.value.k9_email_recipient }}",
         subject="K9 ETL DAG Failed",
         html_content="The K9 ETL DAG has failed. Please check the Airflow logs for more details.",
         trigger_rule="one_failed",
